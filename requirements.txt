@@ -1,0 +1,5 @@
+python-dotenv
+discord.py
+requests
+pytz
+recordtype
