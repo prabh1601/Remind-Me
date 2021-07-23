@@ -41,16 +41,7 @@ You can also setup a logger channel that logs warnings by assigning the enviornm
 
 If you want to just host bot then you can skip installing dependencies and just follow [Final steps](#Final-steps) and just install Docker [Dockerfile](Dockerfile) will take care of rest.
 
-## Contributing
-
-### Linting and Formatting
-
-We are using [autopep8](https://github.com/hhatto/autopep8) for formatting the code.
-
-`pycodestyle .` must generate no errors before accepting the PR.
-Use `autopep8 --in-place --aggressive --aggressive <file name>` for formatting before sending a PR.
-
-## Credits
+### Credits
 
 Shoutout to [TLE](https://github.com/cheran-senthil/TLE) developers for the inspirations. The former used to give updates only for codeforces contest which was expanded to much more sites in this bot.
 
