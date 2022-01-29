@@ -65,19 +65,41 @@ def _get_formatted_contest_desc(
     return desc
 
 
+def _contest_website(contest):
+    website = "Not Found"
+    url = str(contest.url)
+    if url.find("codeforces") != -1:
+        website = "CodeForces"
+    elif url.find("codechef") != -1:
+        website = "CodeChef"
+    elif url.find("atcoder") != -1:
+        website = "AtCoder"
+    elif url.find("google") != -1:
+        website = "Google"
+    elif url.find("hackercup") != -1:
+        website = "FaceBook"
+    elif url.find("leetcode") != -1:
+        website = "LeetCode"
+    elif url.find("codedrills") != -1:
+        website = "CodeDrills"
+    elif url.find("usaco") != -1:
+        website = "USACO"
+    return website
+
+
 def _get_embed_fields_from_contests(contests, localtimezone):
     infos = [(contest.name,
-              _contest_start_time_format(contest,
-                                         localtimezone),
+              _contest_start_time_format(contest, localtimezone),
+              _contest_website(contest),
               _contest_duration_format(contest),
               contest.url) for contest in contests]
-    max_duration_len = max(len(duration) for _, _, duration, _ in infos)
+    max_duration_len = max(len(duration) for _, _, _, duration, _ in infos)
 
     fields = []
-    for name, start, duration, url in infos:
+    for name, start, website, duration, url in infos:
         value = _get_formatted_contest_desc(
             start, duration, url, max_duration_len)
-        fields.append((name, value))
+        fields.append((name, value, website))
     return fields
 
 
@@ -98,21 +120,22 @@ async def _send_reminder_at(channel, role, contests, before_secs, send_time,
                           for label, value in zip(labels, values) if value > 0)
     desc = f'About to start in {before_str}'
     embed = discord_common.color_embed(description=desc)
-    for name, value in _get_embed_fields_from_contests(
+    for name, value, website in _get_embed_fields_from_contests(
             contests, localtimezone):
-        embed.add_field(name=name, value=value)
+        embed.add_field(name=(website + " || " + name), value=value)
     await channel.send(role.mention, embed=embed)
+
 
 _WEBSITE_ALLOWED_PATTERNS = defaultdict(list)
 _WEBSITE_ALLOWED_PATTERNS['codeforces.com'] = ['']
-_WEBSITE_ALLOWED_PATTERNS['codechef.com'] = [
-    'lunch', 'cook', 'rated']
+_WEBSITE_ALLOWED_PATTERNS['codechef.com'] = ['lunch', 'cook', 'rated']
 _WEBSITE_ALLOWED_PATTERNS['atcoder.jp'] = [
     'abc:', 'arc:', 'agc:', 'grand', 'beginner', 'regular']
 _WEBSITE_ALLOWED_PATTERNS['topcoder.com'] = ['srm', 'tco']
 _WEBSITE_ALLOWED_PATTERNS['codingcompetitions.withgoogle.com'] = ['']
 _WEBSITE_ALLOWED_PATTERNS['facebook.com/hackercup'] = ['']
-_WEBSITE_ALLOWED_PATTERNS['codedrills.io'] = ['']
+_WEBSITE_ALLOWED_PATTERNS['codedrills.io'] = ['icpc']
+_WEBSITE_ALLOWED_PATTERNS['usaco.org'] = ['']
 
 _WEBSITE_DISALLOWED_PATTERNS = defaultdict(list)
 _WEBSITE_DISALLOWED_PATTERNS['codeforces.com'] = [
@@ -124,6 +147,7 @@ _WEBSITE_DISALLOWED_PATTERNS['codingcompetitions.withgoogle.com'] = [
     'registration']
 _WEBSITE_DISALLOWED_PATTERNS['facebook.com/hackercup'] = []
 _WEBSITE_DISALLOWED_PATTERNS['codedrills.io'] = []
+_WEBSITE_DISALLOWED_PATTERNS['usaco.org'] = []
 
 _SUPPORTED_WEBSITES = [
     'codeforces.com',
@@ -133,6 +157,7 @@ _SUPPORTED_WEBSITES = [
     'codingcompetitions.withgoogle.com',
     'facebook.com/hackercup',
     'codedrills.io'
+    'usaco.org'
 ]
 
 GuildSettings = recordtype(
@@ -295,9 +320,9 @@ class Reminders(commands.Cog):
         chunks = paginator.chunkify(contests, _CONTESTS_PER_PAGE)
         for chunk in chunks:
             embed = discord_common.color_embed()
-            for name, value in _get_embed_fields_from_contests(
-                    chunk, localtimezone):
-                embed.add_field(name=name, value=value, inline=False)
+            for name, value, website in _get_embed_fields_from_contests(chunk, localtimezone):
+                embed.add_field(name=(website + " || " + name),
+                                value=value, inline=False)
             pages.append((title, embed))
         return pages
 
@@ -491,7 +516,7 @@ class Reminders(commands.Cog):
             success_str = f'Successfully subscribed from \
                     {subscribed_websites_str} for contest reminders.'
             success_str += f'\n{unsupported_websites_str} \
-                {"are" if len(unsupported)>1 else "is"} \
+                {"are" if len(unsupported) > 1 else "is"} \
                 not supported.' if unsupported_websites_str else ""
             embed = discord_common.embed_success(success_str)
         await ctx.send(embed=embed)
@@ -516,7 +541,7 @@ class Reminders(commands.Cog):
             success_str = f'Successfully unsubscribed from \
                     {unsubscribed_websites_str} for contest reminders.'
             success_str += f'\n{unsupported_websites_str} \
-                {"are" if len(unsupported)>1 else "is"} \
+                {"are" if len(unsupported) > 1 else "is"} \
                 not supported.' if unsupported_websites_str else ""
             embed = discord_common.embed_success(success_str)
         await ctx.send(embed=embed)
