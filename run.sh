@@ -5,9 +5,8 @@ cd "$(dirname "$0")"
 
 while true; do
 
-    git pull
     pip install -r requirements.txt
-    python -m remind
+    python3 -m remind
     (( $? != 42 )) && break
 
     echo '==================================================================='
