@@ -1,5 +1,6 @@
 logs/
 venv/
+data/
 .idea/
 .fuse_hidden000018df00000001
 .env
