@@ -80,8 +80,6 @@ def _contest_website(contest):
         website = "FaceBook"
     elif url.find("leetcode") != -1:
         website = "LeetCode"
-    elif url.find("codedrills") != -1:
-        website = "CodeDrills"
     elif url.find("usaco") != -1:
         website = "USACO"
     return website
@@ -125,29 +123,26 @@ async def _send_reminder_at(channel, role, contests, before_secs, send_time,
         embed.add_field(name=(website + " || " + name), value=value)
     await channel.send(role.mention, embed=embed)
 
+_WEBSITE_DISALLOWED_PATTERNS = defaultdict(list)
+_WEBSITE_DISALLOWED_PATTERNS['codeforces.com'] = ['wild', 'fools', 'kotlin', 'unrated']
+_WEBSITE_DISALLOWED_PATTERNS['codechef.com'] = ['unrated','long']
+_WEBSITE_DISALLOWED_PATTERNS['atcoder.jp'] = []
+_WEBSITE_DISALLOWED_PATTERNS['topcoder.com'] = []
+_WEBSITE_DISALLOWED_PATTERNS['codingcompetitions.withgoogle.com'] = ['registration']
+_WEBSITE_DISALLOWED_PATTERNS['facebook.com/hackercup'] = []
+_WEBSITE_DISALLOWED_PATTERNS['leetcode.com'] = []
 
 _WEBSITE_ALLOWED_PATTERNS = defaultdict(list)
 _WEBSITE_ALLOWED_PATTERNS['codeforces.com'] = ['']
-_WEBSITE_ALLOWED_PATTERNS['codechef.com'] = ['lunch', 'cook', 'rated']
+_WEBSITE_ALLOWED_PATTERNS['codechef.com'] = ['lunch', 'cook','rated']
 _WEBSITE_ALLOWED_PATTERNS['atcoder.jp'] = [
     'abc:', 'arc:', 'agc:', 'grand', 'beginner', 'regular']
 _WEBSITE_ALLOWED_PATTERNS['topcoder.com'] = ['srm', 'tco']
 _WEBSITE_ALLOWED_PATTERNS['codingcompetitions.withgoogle.com'] = ['']
 _WEBSITE_ALLOWED_PATTERNS['facebook.com/hackercup'] = ['']
-_WEBSITE_ALLOWED_PATTERNS['codedrills.io'] = ['icpc']
 _WEBSITE_ALLOWED_PATTERNS['usaco.org'] = ['']
+_WEBSITE_ALLOWED_PATTERNS['leetcode.com'] = ['']
 
-_WEBSITE_DISALLOWED_PATTERNS = defaultdict(list)
-_WEBSITE_DISALLOWED_PATTERNS['codeforces.com'] = [
-    'wild', 'fools', 'kotlin', 'unrated']
-_WEBSITE_DISALLOWED_PATTERNS['codechef.com'] = ['unrated']
-_WEBSITE_DISALLOWED_PATTERNS['atcoder.jp'] = []
-_WEBSITE_DISALLOWED_PATTERNS['topcoder.com'] = []
-_WEBSITE_DISALLOWED_PATTERNS['codingcompetitions.withgoogle.com'] = [
-    'registration']
-_WEBSITE_DISALLOWED_PATTERNS['facebook.com/hackercup'] = []
-_WEBSITE_DISALLOWED_PATTERNS['codedrills.io'] = []
-_WEBSITE_DISALLOWED_PATTERNS['usaco.org'] = []
 
 _SUPPORTED_WEBSITES = [
     'codeforces.com',
@@ -156,8 +151,8 @@ _SUPPORTED_WEBSITES = [
     'topcoder.com',
     'codingcompetitions.withgoogle.com',
     'facebook.com/hackercup',
-    'codedrills.io'
-    'usaco.org'
+    'leetcode.com',
+    'usaco.org',
 ]
 
 GuildSettings = recordtype(
