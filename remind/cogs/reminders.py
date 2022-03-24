@@ -123,26 +123,32 @@ async def _send_reminder_at(channel, role, contests, before_secs, send_time,
         embed.add_field(name=(website + " || " + name), value=value)
     await channel.send(role.mention, embed=embed)
 
+_WEBSITE_ALLOWED_PATTERNS = defaultdict(list)
 _WEBSITE_DISALLOWED_PATTERNS = defaultdict(list)
+
+_WEBSITE_ALLOWED_PATTERNS['codeforces.com'] = ['']
 _WEBSITE_DISALLOWED_PATTERNS['codeforces.com'] = ['wild', 'fools', 'kotlin', 'unrated']
-_WEBSITE_DISALLOWED_PATTERNS['codechef.com'] = ['unrated','long']
+
+_WEBSITE_ALLOWED_PATTERNS['codechef.com'] = ['lunch', 'cook', 'starters', 'rated']
+_WEBSITE_DISALLOWED_PATTERNS['codechef.com'] = ['unrated', 'long']
+
+_WEBSITE_ALLOWED_PATTERNS['atcoder.jp'] = ['abc:', 'arc:', 'agc:', 'grand', 'beginner', 'regular']
 _WEBSITE_DISALLOWED_PATTERNS['atcoder.jp'] = []
+
+_WEBSITE_ALLOWED_PATTERNS['topcoder.com'] = ['srm', 'tco']
 _WEBSITE_DISALLOWED_PATTERNS['topcoder.com'] = []
+
+_WEBSITE_ALLOWED_PATTERNS['codingcompetitions.withgoogle.com'] = ['']
 _WEBSITE_DISALLOWED_PATTERNS['codingcompetitions.withgoogle.com'] = ['registration']
+
+_WEBSITE_ALLOWED_PATTERNS['facebook.com/hackercup'] = ['']
 _WEBSITE_DISALLOWED_PATTERNS['facebook.com/hackercup'] = []
+
+_WEBSITE_ALLOWED_PATTERNS['leetcode.com'] = ['']
 _WEBSITE_DISALLOWED_PATTERNS['leetcode.com'] = []
 
-_WEBSITE_ALLOWED_PATTERNS = defaultdict(list)
-_WEBSITE_ALLOWED_PATTERNS['codeforces.com'] = ['']
-_WEBSITE_ALLOWED_PATTERNS['codechef.com'] = ['lunch', 'cook','rated']
-_WEBSITE_ALLOWED_PATTERNS['atcoder.jp'] = [
-    'abc:', 'arc:', 'agc:', 'grand', 'beginner', 'regular']
-_WEBSITE_ALLOWED_PATTERNS['topcoder.com'] = ['srm', 'tco']
-_WEBSITE_ALLOWED_PATTERNS['codingcompetitions.withgoogle.com'] = ['']
-_WEBSITE_ALLOWED_PATTERNS['facebook.com/hackercup'] = ['']
 _WEBSITE_ALLOWED_PATTERNS['usaco.org'] = ['']
-_WEBSITE_ALLOWED_PATTERNS['leetcode.com'] = ['']
-
+_WEBSITE_DISALLOWED_PATTERNS['usaco.org'] = []
 
 _SUPPORTED_WEBSITES = [
     'codeforces.com',
