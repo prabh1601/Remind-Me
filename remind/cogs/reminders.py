@@ -76,7 +76,7 @@ def _contest_website(contest):
         website = "AtCoder"
     elif url.find("google") != -1:
         website = "Google"
-    elif url.find("hackercup") != -1:
+    elif url.find("hacker-cup") != -1:
         website = "FaceBook"
     elif url.find("leetcode") != -1:
         website = "LeetCode"
