@@ -64,7 +64,10 @@ def cache(forced=False):
             last_time_stamp < _CLIST_API_TIME_DIFFERENCE:
         return
 
-    contests = _query_api()
+    try:
+        contests = _query_api()
+    except:
+        return
     db = {}
     db['querytime'] = current_time_stamp
     db['objects'] = contests
