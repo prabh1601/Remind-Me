@@ -77,7 +77,7 @@ def _contest_website(contest):
     elif url.find("google") != -1:
         website = "Google"
     elif url.find("hacker-cup") != -1:
-        website = "FaceBook"
+        website = "FB HackerCup"
     elif url.find("leetcode") != -1:
         website = "LeetCode"
     elif url.find("usaco") != -1:
@@ -127,8 +127,7 @@ _WEBSITE_DISALLOWED_PATTERNS = defaultdict(list)
 _WEBSITE_DISALLOWED_PATTERNS['codeforces.com'] = ['wild', 'fools', 'kotlin', 'unrated']
 _WEBSITE_DISALLOWED_PATTERNS['codechef.com'] = ['unrated','long']
 _WEBSITE_DISALLOWED_PATTERNS['atcoder.jp'] = []
-_WEBSITE_DISALLOWED_PATTERNS['topcoder.com'] = []
-_WEBSITE_DISALLOWED_PATTERNS['codingcompetitions.withgoogle.com'] = ['registration']
+_WEBSITE_DISALLOWED_PATTERNS['codingcompetitions.withgoogle.com'] = ['registration', 'coding practice']
 _WEBSITE_DISALLOWED_PATTERNS['facebook.com/hackercup'] = []
 _WEBSITE_DISALLOWED_PATTERNS['leetcode.com'] = []
 
@@ -137,7 +136,6 @@ _WEBSITE_ALLOWED_PATTERNS['codeforces.com'] = ['']
 _WEBSITE_ALLOWED_PATTERNS['codechef.com'] = ['lunch', 'cook','rated']
 _WEBSITE_ALLOWED_PATTERNS['atcoder.jp'] = [
     'abc:', 'arc:', 'agc:', 'grand', 'beginner', 'regular']
-_WEBSITE_ALLOWED_PATTERNS['topcoder.com'] = ['srm', 'tco']
 _WEBSITE_ALLOWED_PATTERNS['codingcompetitions.withgoogle.com'] = ['']
 _WEBSITE_ALLOWED_PATTERNS['facebook.com/hackercup'] = ['']
 _WEBSITE_ALLOWED_PATTERNS['usaco.org'] = ['']
@@ -148,7 +146,6 @@ _SUPPORTED_WEBSITES = [
     'codeforces.com',
     'codechef.com',
     'atcoder.jp',
-    'topcoder.com',
     'codingcompetitions.withgoogle.com',
     'facebook.com/hackercup',
     'leetcode.com',
