@@ -9,6 +9,8 @@ from remind.util.discord_common import pretty_time_format
 from remind.util import clist_api
 from remind import constants
 
+from remind.util import discord_common
+
 RESTART = 42
 
 
@@ -26,22 +28,16 @@ def git_history():
         env['LANGUAGE'] = 'C'
         env['LANG'] = 'C'
         env['LC_ALL'] = 'C'
-        out = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            env=env).communicate()[0]
+        out = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=env).communicate()[0]
         return out
+
     try:
         out = _minimal_ext_cmd(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
         branch = out.strip().decode('ascii')
         out = _minimal_ext_cmd(['git', 'log', '--oneline', '-5'])
         history = out.strip().decode('ascii')
-        return (
-            'Branch:\n' +
-            textwrap.indent(branch, '  ') +
-            '\nCommits:\n' +
-            textwrap.indent(history, '  ')
-        )
+        return ('Branch:\n' + textwrap.indent(branch, '  ') +
+                '\nCommits:\n' + textwrap.indent(history, '  '))
     except OSError:
         return "Fetching git info failed"
 
@@ -110,7 +106,7 @@ class Meta(commands.Cog):
     @meta.command(brief='Forcefully reset contests')
     @commands.has_any_role('Admin', constants.REMIND_MODERATOR_ROLE)
     async def resetcache(self, ctx):
-        "Resets contest cache."
+        """Resets contest cache."""
         try:
             clist_api.cache(True)
             await ctx.send('```Cache reset completed. '
@@ -118,6 +114,20 @@ class Meta(commands.Cog):
                            '```')
         except BaseException:
             await ctx.send('```' + 'Cache reset failed.' + '```')
+
+    # @meta.command(brief='Show Superuser')
+    # async def superuser(self, ctx):
+    #     """Show Super User Details"""
+    #     superusers = os.getenv('SUPER_USERS')
+    #     if not superusers:
+    #         await ctx.send('Super Users not set')
+    #         return
+    #
+    #     superusers = superusers.split(',')
+    #
+    #     await ctx.send("List of Superusers")
+    #
+    #     for id in
 
 
 def setup(bot):

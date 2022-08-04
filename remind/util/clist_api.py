@@ -31,10 +31,8 @@ class ClientError(ClistApiError):
 def _query_api():
     clist_token = os.getenv('CLIST_API_TOKEN')
     contests_start_time = dt.datetime.utcnow() - dt.timedelta(days=2)
-    contests_start_time_string = contests_start_time.strftime(
-        "%Y-%m-%dT%H%%3A%M%%3A%S")
-    url = URL_BASE + '?limit=200&start__gte=' + \
-        contests_start_time_string + '&' + clist_token
+    contests_start_time_string = contests_start_time.strftime("%Y-%m-%dT%H%%3A%M%%3A%S")
+    url = URL_BASE + '?limit=200&start__gte=' + contests_start_time_string + '&' + clist_token
 
     try:
         resp = requests.get(url)
@@ -47,7 +45,6 @@ def _query_api():
 
 
 def cache(forced=False):
-
     current_time_stamp = dt.datetime.utcnow().timestamp()
     db_file = Path(constants.CONTESTS_DB_FILE_PATH)
 
@@ -60,15 +57,14 @@ def cache(forced=False):
 
     last_time_stamp = db['querytime'] if db and db['querytime'] else 0
 
-    if not forced and current_time_stamp - \
-            last_time_stamp < _CLIST_API_TIME_DIFFERENCE:
+    if not forced and current_time_stamp - last_time_stamp < _CLIST_API_TIME_DIFFERENCE:
         return
+
     try:
         contests = _query_api()
     except:
         return
-    db = {}
-    db['querytime'] = current_time_stamp
-    db['objects'] = contests
+
+    db = {'querytime': current_time_stamp, 'objects': contests}
     with open(db_file, 'w') as f:
         json.dump(db, f)

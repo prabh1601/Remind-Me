@@ -3,7 +3,6 @@ import asyncio
 import discord
 import logging
 from logging.handlers import TimedRotatingFileHandler
-from os import environ
 from remind import constants
 
 from discord.ext import commands
@@ -19,18 +18,15 @@ def setup():
         os.makedirs(path, exist_ok=True)
 
     # logging to console and file on daily interval
-    logging.basicConfig(
-        format='{asctime}:{levelname}:{name}:{message}',
-        style='{',
-        datefmt='%d-%m-%Y %H:%M:%S',
-        level=logging.INFO,
-        handlers=[
-            logging.StreamHandler(),
-            TimedRotatingFileHandler(
-                constants.LOG_FILE_PATH,
-                when='D',
-                backupCount=3,
-                utc=True)])
+    logging.basicConfig(format='{asctime}:{levelname}:{name}:{message}',
+                        style='{',
+                        datefmt='%d-%m-%Y %H:%M:%S',
+                        level=logging.INFO,
+                        handlers=[logging.StreamHandler(),
+                                  TimedRotatingFileHandler(constants.LOG_FILE_PATH,
+                                                           when='D',
+                                                           backupCount=3,
+                                                           utc=True)])
 
 
 def main():
@@ -55,9 +51,7 @@ def main():
 
     intents = discord.Intents.default()
     intents.members = True
-    bot = commands.Bot(
-        command_prefix=commands.when_mentioned_or('t;'),
-        intents=intents)
+    bot = commands.Bot(command_prefix=commands.when_mentioned_or('t;'), intents=intents)
 
     cogs = [file.stem for file in Path('remind', 'cogs').glob('*.py')]
     for extension in cogs:

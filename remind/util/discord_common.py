@@ -45,12 +45,11 @@ def time_format(seconds):
     return days, hours, minutes, seconds
 
 
-def pretty_time_format(
-        seconds,
-        *,
-        shorten=False,
-        only_most_significant=False,
-        always_seconds=False):
+def pretty_time_format(seconds,
+                       *,
+                       shorten=False,
+                       only_most_significant=False,
+                       always_seconds=False):
     days, hours, minutes, seconds = time_format(seconds)
     timespec = [
         (days, 'day', 'days'),
@@ -66,8 +65,7 @@ def pretty_time_format(
 
     def format_(triple):
         cnt, singular, plural = triple
-        return f'{cnt}{singular[0]}' if shorten \
-            else f'{cnt} {singular if cnt == 1 else plural}'
+        return f'{cnt}{singular[0]}' if shorten else f'{cnt} {singular if cnt == 1 else plural}'
 
     return ' '.join(map(format_, timeprint))
 
@@ -78,6 +76,7 @@ def send_error_if(*error_cls):
     when the error is an instance of one of the specified errors,
     otherwise the wrapped function is invoked.
     """
+
     def decorator(func):
         @functools.wraps(func)
         async def wrapper(cog, ctx, error):
@@ -86,7 +85,9 @@ def send_error_if(*error_cls):
                 error.handled = True
             else:
                 await func(cog, ctx, error)
+
         return wrapper
+
     return decorator
 
 
@@ -110,6 +111,7 @@ def on_ready_event_once(bot):
     as the bot's on_ready event handler,
     but does not execute it more than once.
     """
+
     def register_on_ready(func):
         @bot.event
         @once
@@ -125,12 +127,8 @@ async def bot_error_handler(ctx, exception):
         return
 
     exc_info = type(exception), exception, exception.__traceback__
-    logger.exception(
-        'Ignoring exception in command {}:'.format(
-            ctx.command), exc_info=exc_info)
+    logger.exception('Ignoring exception in command {}:'.format(ctx.command), exc_info=exc_info)
 
 
 async def presence(bot):
-    await bot.change_presence(activity=discord.Activity(
-        type=discord.ActivityType.watching,
-        name='clist.by'))
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name='clist.by'))

@@ -2,15 +2,14 @@ import datetime as dt
 
 
 class Round:
-    def __init__(self, round):
-        self.id = round['id']
-        self.name = round['event']
-        self.start_time = dt.datetime.strptime(
-            round['start'], '%Y-%m-%dT%H:%M:%S')
-        self.duration = dt.timedelta(seconds=round['duration'])
-        self.url = round['href']
-        self.website = round['resource']['name']
-        self.website_id = round['resource']['id']
+    def __init__(self, contest):
+        self.id = contest['id']
+        self.name = contest['event']
+        self.start_time = dt.datetime.strptime(contest['start'], '%Y-%m-%dT%H:%M:%S')
+        self.duration = dt.timedelta(seconds=contest['duration'])
+        self.url = contest['href']
+        self.website = contest['resource']['name']
+        self.website_id = contest['resource']['id']
 
     def __str__(self):
         st = "ID = " + str(self.id) + ", "
@@ -23,10 +22,11 @@ class Round:
         st = "(" + st[:-2] + ")"
         return st
 
-    def is_desired(
-            self,
-            website_allowed_patterns,
-            website_disallowed_patterns):
+    def is_eligible(self, site):
+        return site == self.website
+
+    def is_desired(self, website_allowed_patterns, website_disallowed_patterns):
+
         for disallowed_pattern in website_disallowed_patterns[self.website]:
             if disallowed_pattern in self.name.lower():
                 return False

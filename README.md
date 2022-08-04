@@ -7,6 +7,8 @@ A discord bot that sends reminders for future contests using [clist](https://cli
 
 > **Use Python 3.7 or later.**
 
+(upd : the current code will break on with version >= 3.10 due to )
+
 Clone the repository:
 
 ```bash
