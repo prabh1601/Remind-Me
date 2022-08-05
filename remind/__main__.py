@@ -17,16 +17,37 @@ def setup():
     for path in constants.ALL_DIRS:
         os.makedirs(path, exist_ok=True)
 
+    class CustomFormatter(logging.Formatter):
+        grey = "\x1b[38;20m"
+        cyan = "\x1b[36;20m"
+        yellow = "\x1b[33;20m"
+        red = "\x1b[31;20m"
+        bold_red = "\x1b[31;1m"
+        reset = "\x1b[0m"
+        format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
+
+        FORMATS = {
+            logging.DEBUG: cyan + format + reset,
+            logging.INFO: grey + format + reset,
+            logging.WARNING: yellow + format + reset,
+            logging.ERROR: red + format + reset,
+            logging.CRITICAL: bold_red + format + reset
+        }
+
+        def format(self, record):
+            log_fmt = self.FORMATS.get(record.levelno)
+            formatter = logging.Formatter(log_fmt)
+            return formatter.format(record)
+
+    ch = logging.StreamHandler()
+    ch.setFormatter(CustomFormatter())
     # logging to console and file on daily interval
     logging.basicConfig(format='{asctime}:{levelname}:{name}:{message}',
                         style='{',
                         datefmt='%d-%m-%Y %H:%M:%S',
-                        level=logging.INFO,
-                        handlers=[logging.StreamHandler(),
-                                  TimedRotatingFileHandler(constants.LOG_FILE_PATH,
-                                                           when='D',
-                                                           backupCount=3,
-                                                           utc=True)])
+                        level=logging.DEBUG,
+                        handlers=[ch,
+                                  TimedRotatingFileHandler(constants.LOG_FILE_PATH, when='D', backupCount=3, utc=True)])
 
 
 def main():
@@ -58,13 +79,14 @@ def main():
         bot.load_extension(f'remind.cogs.{extension}')
     logging.info(f'Cogs loaded: {", ".join(bot.cogs)}')
 
-    def no_dm_check(ctx):
+    async def no_dm_usage_check(ctx):
         if ctx.guild is None:
+            await ctx.send('Bot usage in DM not allowed')
             raise commands.NoPrivateMessage('Private messages not permitted.')
         return True
 
     # Restrict bot usage to inside guild channels only.
-    bot.add_check(no_dm_check)
+    bot.add_check(no_dm_usage_check)
 
     @discord_common.on_ready_event_once(bot)
     async def init():
