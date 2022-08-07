@@ -396,9 +396,6 @@ class Reminders(commands.Cog):
         """ Resets the judges settings to the default ones.
         """
         self.guild_map[ctx.guild.id].website_patterns = copy.deepcopy(website_schema.schema)
-        # default_settings = get_default_guild_settings()
-        # self.guild_map[ctx.guild.id].website_allowed_patterns = default_settings.default_allowed_patterns
-        # self.guild_map[ctx.guild.id].website_disallowed_patterns = default_settings.default_disallowed_patterns
         await ctx.send(embed=discord_common.embed_success('Succesfully reset the subscriptions to the default ones'))
 
     # @remind.command(brief='Show reminder settings')
@@ -772,7 +769,7 @@ class Reminders(commands.Cog):
                                 f" mins before contest"
         if settings.finalcall_before is not None:
             final_before_str = f"At {settings.finalcall_before} mins before contest"
-        embed = discord_common.embed_success(f'Current settings for {ctx.guild.name}')
+        embed = discord_common.embed_success(f'Current settings')
 
         if remind_channel is not None:
             embed.add_field(name='Remind Channel', value=remind_channel.mention)
@@ -792,8 +789,11 @@ class Reminders(commands.Cog):
             embed.add_field(name='Final Call Channel', value="Not Set")
 
         embed.add_field(name='Final Call Before', value=final_before_str)
+        embed.add_field(name="\u200b", value="\u200b")
 
         embed.add_field(name='Subscribed websites', value=f'{subscribed_websites_str}', inline=False)
+
+        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
         await ctx.send(embed=embed)
 
     @discord_common.send_error_if(RemindersCogError)
