@@ -7,7 +7,7 @@ A discord bot that sends reminders for future contests using [clist](https://cli
 
 > **Use Python 3.7 or later.**
 
-(upd : the current code will break on with version >= 3.10 due to )
+(upd : the current code will break on with version >= 3.10 due to usage of recordtype)
 
 Clone the repository:
 
@@ -35,13 +35,46 @@ You will need [clist.by](https://clist.by/) api key for updation of contest list
 
 You can also setup a logger channel that logs warnings by assigning the enviornment variable `LOGGING_COG_CHANNEL_ID`. But this is optional.
 
+After following above procedure, fire up the bot with this command in directory
 ```bash
 ./run.sh
 ```
 
-#### Deployment
+### Deployment
+<details>
+<summary> As a systemd Service</summary>
 
-If you want to just host bot then you can skip installing dependencies and just follow [Final steps](#Final-steps) and just install Docker [Dockerfile](Dockerfile) will take care of rest.
+Using Systemd Service is very easy method to deploy.
+>Please note that you need admin access to the system
+on which you are going deploy the bot. Also this options requires managing services, please only consider this option
+if you know what you are doing.
+
+1. Complete the Above procedure till [Final steps](#Final-steps) and then cd to `etc/systemd/service` 
+2. Create a file name `remind.service` and paste the below content in it
+```
+[Unit]
+Description=Remind Bot
+
+[Service]
+ExecStart=<absolute-path-to-your-bot-directory>/run.sh
+
+[Install]
+WantedBy=multi-user.target                          
+```
+3. Save the file and run following commands
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now remind
+```
+4. Upon Success, check the status of bot with ```sudo systemctl status remind```. 
+5. If everything went well, you should be seeing running status of bot.
+</details>
+
+<details>
+<summary> With Docker </summary>
+
+If you want to just host bot using docker, then you can skip installing dependencies and just follow [Final steps](#Final-steps) and just install Docker [Dockerfile](Dockerfile) will take care of rest.
+</details>
 
 ### Credits
 
