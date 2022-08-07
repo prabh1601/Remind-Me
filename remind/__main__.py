@@ -81,7 +81,6 @@ def main():
 
     async def no_dm_usage_check(ctx):
         if ctx.guild is None:
-            await ctx.send('Bot usage in DM not allowed')
             raise commands.NoPrivateMessage('Private messages not permitted.')
         return True
 

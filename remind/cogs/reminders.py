@@ -55,8 +55,9 @@ class RemindRequest:
 
 
 class FinalCallRequest:
-    def __init__(self, *, embed, role_id):
+    def __init__(self, *, embed, role_id, msg_id=None):
         self.role_id = role_id
+        self.msg_id = msg_id
         self.embed_desc = embed.description
         self.embed_fields = [(field.name, field.value) for field in embed.fields]
 
@@ -309,7 +310,8 @@ class Reminders(commands.Cog):
             if reaction_role is not None:
                 task = asyncio.create_task(
                     self.send_finalcall_reminder(embed, guild_id, reaction_role, send_time, link))
-                self.finalcall_map[guild_id][link] = FinalCallRequest(role_id=reaction_role.id, embed=embed)
+                self.finalcall_map[guild_id][link] = FinalCallRequest(role_id=reaction_role.id, embed=embed,
+                                                                      msg_id=data.msg_id)
                 self.finaltasks[guild_id][link] = task
 
         self.logger.info(
@@ -338,6 +340,7 @@ class Reminders(commands.Cog):
                            set_pagenum_footers=True)
 
     def _serialize_guild_map(self):
+        self.logger.info("Serializing db to local file")
         data = {"guild_map": self.guild_map, "finalcall_map": self.finalcall_map}
         out_path = Path(constants.GUILD_SETTINGS_MAP_PATH)
         with out_path.open(mode='wb') as out_file:
@@ -591,10 +594,12 @@ class Reminders(commands.Cog):
                                       empty_msg='No finished contests found')
 
     async def send_finalcall_reminder(self, embed, guild_id, role, send_time, link):
+        send_msg = "Close Discord and Make sure you registered for the contest. GLHF!"
         settings = self.guild_map[guild_id]
 
         # sleep till the ping time
         delay = send_time - dt.datetime.utcnow().timestamp()
+        print(delay)
         if delay >= 0:
             await asyncio.sleep(delay)
 
@@ -608,19 +613,24 @@ class Reminders(commands.Cog):
             desc = f'About to start in {before_str}'
             embed.description = desc
             channel = self.bot.get_channel(settings.finalcall_channel_id)
-            await channel.send(role.mention + " Close Discord and Make sure you registered for the contest. GLHF!",
-                               embed=embed)
+            msg = await channel.send(role.mention + " " + send_msg, embed=embed)
+            self.finalcall_map[guild_id][link].msg_id = msg.id
+            self._serialize_guild_map()
 
         # sleep till contest starts
-        time_to_contest = send_time + settings.finalcall_before * 60 - dt.datetime.utcnow().timestamp()
+        time_to_contest = max(0, send_time + settings.finalcall_before * 60 - dt.datetime.utcnow().timestamp())
         await asyncio.sleep(time_to_contest)
 
         # delete role and task
         if link in self.finalcall_map[guild_id]:
+            msg_id = self.finalcall_map[guild_id][link].msg_id
+            message = await self.bot.get_channel(settings.finalcall_channel_id).fetch_message(msg_id)
+            await message.edit(content=send_msg)
             del self.finalcall_map[guild_id][link]
             del self.finaltasks[guild_id][link]
         if role is not None:
             await role.delete()
+        self._serialize_guild_map()
 
     @staticmethod
     def get_values_from_embed(embed):
@@ -656,7 +666,6 @@ class Reminders(commands.Cog):
             task = asyncio.create_task(self.send_finalcall_reminder(embed, guild_id, reaction_role, send_time, link))
             self.finalcall_map[guild_id][link] = FinalCallRequest(embed=embed, role_id=reaction_role.id)
             self.finaltasks[guild_id][link] = task
-            # print(self.finalcall_map[guild_id])
         else:
             reaction_role = None
 
@@ -695,6 +704,7 @@ class Reminders(commands.Cog):
         member = self.bot.get_guild(payload.guild_id).get_member(payload.user_id)
         await member.add_roles(reaction_role)
         member_dm = await member.create_dm()
+        self._serialize_guild_map()
         await member_dm.send(f"Final Call Alarm Set. You are alloted '{reaction_role.name}' which will be pinged"
                              f" {settings.finalcall_before} mins before the contest")
 
@@ -723,6 +733,7 @@ class Reminders(commands.Cog):
                 del self.finalcall_map[payload.guild_id][link]
                 del self.finaltasks[payload.guild_id][link]
             await reaction_role.delete()
+        self._serialize_guild_map()
 
     @commands.group(brief="Manage Final Call Reminder", invoke_without_command=True)
     async def final(self, ctx):
