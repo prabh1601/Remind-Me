@@ -1,6 +1,10 @@
 logs/
+env/
 venv/
 data/
+remind/__pycache__/
+remind/util/__pycache__/
+remind/cogs/__pycache__/
 .idea/
 .fuse_hidden000018df00000001
 .env
