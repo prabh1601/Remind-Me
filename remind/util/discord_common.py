@@ -127,6 +127,7 @@ async def bot_error_handler(ctx, exception):
         return
 
     exc_info = type(exception), exception, exception.__traceback__
+    await ctx.send(exception)
     logger.exception('Ignoring exception in command {}:'.format(ctx.command), exc_info=exc_info)
 
 

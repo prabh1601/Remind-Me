@@ -1,4 +1,5 @@
 import datetime as dt
+from remind.util import website_schema
 
 
 class Round:
@@ -25,15 +26,16 @@ class Round:
     def is_eligible(self, site):
         return site == self.website
 
-    def is_desired(self, website_allowed_patterns, website_disallowed_patterns):
+    def is_desired(self, websites):
 
-        for disallowed_pattern in website_disallowed_patterns[self.website]:
+        for disallowed_pattern in websites[self.website].disallowed_patterns:
             if disallowed_pattern in self.name.lower():
                 return False
 
-        for allowed_pattern in website_allowed_patterns[self.website]:
+        for allowed_pattern in websites[self.website].allowed_patterns:
             if allowed_pattern in self.name.lower():
                 return True
+
         return False
 
     def __repr__(self):
