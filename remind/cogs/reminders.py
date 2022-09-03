@@ -594,7 +594,7 @@ class Reminders(commands.Cog):
                                       empty_msg='No finished contests found')
 
     async def send_finalcall_reminder(self, embed, guild_id, role, send_time, link):
-        send_msg = "Close Discord and Make sure you registered for the contest. GLHF!"
+        send_msg = "GLHF!"
         settings = self.guild_map[guild_id]
 
         # sleep till the ping time
