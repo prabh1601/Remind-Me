@@ -70,7 +70,7 @@ def get_default_guild_settings():
 
 def _contest_start_time_format(contest, tz):
     start = contest.start_time.replace(tzinfo=dt.timezone.utc).astimezone(tz)
-    return f'{start.strftime("%d %b %y, %H:%M")} {tz}'
+    return f'{start.strftime("%a, %d %b | %H:%M")} {tz}'
 
 
 def _contest_duration_format(contest):
@@ -94,7 +94,7 @@ def _get_contest_website_prefix(contest):
         if website == contest.website:
             return data.prefix
 
-    return "Not Found"
+    assert False
 
 
 def _get_embed_fields_from_contests(contests, localtimezone):
@@ -599,7 +599,6 @@ class Reminders(commands.Cog):
 
         # sleep till the ping time
         delay = send_time - dt.datetime.utcnow().timestamp()
-        print(delay)
         if delay >= 0:
             await asyncio.sleep(delay)
 
@@ -642,7 +641,7 @@ class Reminders(commands.Cog):
         separator = time_field.rfind(" ")
         time_stamp = time_field[:separator]
         timezone = pytz.timezone(time_field[separator + 1:])
-        start_time = dt.datetime.strptime(time_stamp, "%d %b %y, %H:%M")
+        start_time = dt.datetime.strptime(time_stamp, "%a, %d %b | %H:%M")
         start_time = timezone.localize(start_time).astimezone(dt.timezone.utc)
         start_time = time.mktime(start_time.timetuple())  # in sec now
 
@@ -750,10 +749,12 @@ class Reminders(commands.Cog):
 
         finalcall_channel = ctx.guild.get_channel(self.guild_map[ctx.guild.id].finalcall_channel_id)
 
+        await finalcall_channel.edit(name=f"starts-in-{before}-mins")
+
         embed = discord_common.embed_success('Final Call Settings Saved Successfully')
         embed.add_field(name='Final Call channel', value=finalcall_channel.mention)
         embed.add_field(name='Final Call Before',
-                        value=f"At {self.guild_map[ctx.guild.id].finalcall_before} mins before contest")
+                        value=f"{self.guild_map[ctx.guild.id].finalcall_before} mins before contest")
 
         await ctx.send(embed=embed)
 
