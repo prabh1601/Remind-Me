@@ -70,7 +70,7 @@ def get_default_guild_settings():
 
 def _contest_start_time_format(contest, tz):
     start = contest.start_time.replace(tzinfo=dt.timezone.utc).astimezone(tz)
-    return f'{start.strftime("%a, %d %b | %H:%M")} {tz}'
+    return f'{start.strftime("%a, %d %b %y, %H:%M")}'
 
 
 def _contest_duration_format(contest):
@@ -130,6 +130,7 @@ async def _send_reminder_at(request):
     embed = discord_common.color_embed(description=desc)
     for website, name, value in _get_embed_fields_from_contests(request.contests, request.localtimezone):
         embed.add_field(name=(website + " || " + name), value=value)
+    embed.set_footer(text=f"TimeZone: {request.localtimezone}")
     await request.channel.send(request.role.mention, embed=embed)
 
 
@@ -167,6 +168,7 @@ class Reminders(commands.Cog):
         self.guild_map = defaultdict(get_default_guild_settings)
         self.last_guild_backup_time = -1
         self.reaction_emoji = "✅"
+        self.nope_emoji = 973583086174498847
 
         self.finalcall_map = defaultdict(create_tuple_defaultdict)
         self.finaltasks = defaultdict(lambda: dict())
@@ -304,6 +306,7 @@ class Reminders(commands.Cog):
             embed = discord_common.color_embed(desc=embed_desc)
             for (name, value) in embed_fields:
                 embed.add_field(name=name, value=value)
+            embed.set_footer(text=f"TimeZone: {self.guild_map[guild_id].localtimezone}")
             link, start_time = self.get_values_from_embed(embed)
             send_time = start_time - self.guild_map[guild_id].finalcall_before * 60
             reaction_role = self.bot.get_guild(guild_id).get_role(data.role_id)
@@ -323,6 +326,7 @@ class Reminders(commands.Cog):
         chunks = paginator.chunkify(contests, _CONTESTS_PER_PAGE)
         for chunk in chunks:
             embed = discord_common.color_embed()
+            embed.description = f"TimeZone : {localtimezone}"
             for website, name, value in _get_embed_fields_from_contests(chunk, localtimezone):
                 embed.add_field(name=(website + " || " + name), value=value, inline=False)
             pages.append((title, embed))
@@ -335,8 +339,7 @@ class Reminders(commands.Cog):
             await ctx.send(embed=discord_common.embed_neutral(empty_msg))
             return
         pages = self._make_contest_pages(contests, title, self.guild_map[ctx.guild.id].localtimezone)
-        paginator.paginate(self.bot, ctx.channel, pages,
-                           wait_time=_CONTEST_PAGINATE_WAIT_TIME,
+        paginator.paginate(self.bot, ctx.channel, pages, wait_time=_CONTEST_PAGINATE_WAIT_TIME,
                            set_pagenum_footers=True)
 
     def _serialize_guild_map(self):
@@ -637,11 +640,9 @@ class Reminders(commands.Cog):
         link_field = values[5].strip()
         link = link_field[link_field.find("(") + 1: link_field.find('"')].strip()
 
-        time_field = values[1].strip()
-        separator = time_field.rfind(" ")
-        time_stamp = time_field[:separator]
-        timezone = pytz.timezone(time_field[separator + 1:])
-        start_time = dt.datetime.strptime(time_stamp, "%a, %d %b | %H:%M")
+        timezone = pytz.timezone(embed.footer.text.split(" ")[1])
+        time_stamp = values[1].strip()
+        start_time = dt.datetime.strptime(time_stamp, "%a, %d %b %y, %H:%M")
         start_time = timezone.localize(start_time).astimezone(dt.timezone.utc)
         start_time = time.mktime(start_time.timetuple())  # in sec now
 
@@ -691,7 +692,7 @@ class Reminders(commands.Cog):
         if response is None:
             return
 
-        reaction_count, embed = response
+        _, embed = response
         _, start_time = self.get_values_from_embed(embed)
         send_time = start_time - self.guild_map[payload.guild_id].finalcall_before * 60
 
@@ -733,6 +734,17 @@ class Reminders(commands.Cog):
                 del self.finaltasks[payload.guild_id][link]
             await reaction_role.delete()
         self._serialize_guild_map()
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        settings = self.guild_map[message.guild.id]
+        if message.channel.id != settings.remind_channel_id or not message.embeds:
+            return
+
+        time.sleep((settings.remind_before + 10) * 60)
+        message = await self.bot.get_channel(settings.finalcall_channel_id).fetch_message(message.id)
+        if not message.reactions:
+            await message.add_reaction(emoji=self.bot.get_emoji(self.nope_emoji))
 
     @commands.group(brief="Manage Final Call Reminder", invoke_without_command=True)
     async def final(self, ctx):
