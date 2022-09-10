@@ -126,11 +126,10 @@ async def _send_reminder_at(request):
 
     labels = 'day hr min sec'.split()
     before_str = ' '.join(make(value, label) for label, value in zip(labels, values) if value > 0)
-    desc = f'About to start in {before_str}'
+    desc = f'About to start in {before_str} | {request.localtimezone}'
     embed = discord_common.color_embed(description=desc)
     for website, name, value in _get_embed_fields_from_contests(request.contests, request.localtimezone):
         embed.add_field(name=(website + " || " + name), value=value)
-    embed.set_footer(text=f"TimeZone: {request.localtimezone}")
     await request.channel.send(request.role.mention, embed=embed)
 
 
@@ -306,7 +305,6 @@ class Reminders(commands.Cog):
             embed = discord_common.color_embed(desc=embed_desc)
             for (name, value) in embed_fields:
                 embed.add_field(name=name, value=value)
-            embed.set_footer(text=f"TimeZone: {self.guild_map[guild_id].localtimezone}")
             link, start_time = self.get_values_from_embed(embed)
             send_time = start_time - self.guild_map[guild_id].finalcall_before * 60
             reaction_role = self.bot.get_guild(guild_id).get_role(data.role_id)
@@ -612,7 +610,7 @@ class Reminders(commands.Cog):
             labels = 'day hr min sec'.split()
             values = discord_common.time_format(settings.finalcall_before * 60)
             before_str = ' '.join(make(value, label) for label, value in zip(labels, values) if value > 0)
-            desc = f'About to start in {before_str}'
+            desc = f'About to start in {before_str} | {settings.localtimezone}'
             embed.description = desc
             channel = self.bot.get_channel(settings.finalcall_channel_id)
             msg = await channel.send(role.mention + " " + send_msg, embed=embed)
@@ -640,7 +638,7 @@ class Reminders(commands.Cog):
         link_field = values[5].strip()
         link = link_field[link_field.find("(") + 1: link_field.find('"')].strip()
 
-        timezone = pytz.timezone(embed.footer.text.split(" ")[1])
+        timezone = pytz.timezone(embed.description.split("| ")[1])
         time_stamp = values[1].strip()
         start_time = dt.datetime.strptime(time_stamp, "%a, %d %b %y, %H:%M")
         start_time = timezone.localize(start_time).astimezone(dt.timezone.utc)
