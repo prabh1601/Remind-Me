@@ -302,7 +302,9 @@ class Reminders(commands.Cog):
 
         for data in pending_reschedule:
             embed_desc, embed_fields = data.embed_desc, data.embed_fields
+            print(embed_desc)
             embed = discord_common.color_embed(desc=embed_desc)
+            embed.description = embed_desc
             for (name, value) in embed_fields:
                 embed.add_field(name=name, value=value)
             link, start_time = self.get_values_from_embed(embed)
@@ -739,7 +741,9 @@ class Reminders(commands.Cog):
         if message.channel.id != settings.remind_channel_id or not message.embeds:
             return
 
-        time.sleep((settings.remind_before + 10) * 60)
+        _, start_time = self.get_values_from_embed(message.embeds[0])
+        delay = start_time - dt.datetime.utcnow().timestamp()
+        time.sleep(delay)
         message = await self.bot.get_channel(settings.finalcall_channel_id).fetch_message(message.id)
         if not message.reactions:
             await message.add_reaction(emoji=self.bot.get_emoji(self.nope_emoji))
@@ -759,7 +763,7 @@ class Reminders(commands.Cog):
 
         finalcall_channel = ctx.guild.get_channel(self.guild_map[ctx.guild.id].finalcall_channel_id)
 
-        await finalcall_channel.edit(name=f"starts-in-{before}-mins")
+        # await finalcall_channel.edit(name=f"starts-in-{before}-mins")
 
         embed = discord_common.embed_success('Final Call Settings Saved Successfully')
         embed.add_field(name='Final Call channel', value=finalcall_channel.mention)
