@@ -744,6 +744,7 @@ class Reminders(commands.Cog):
         _, start_time = self.get_values_from_embed(message.embeds[0])
         delay = start_time - dt.datetime.utcnow().timestamp() + 300
         await asyncio.sleep(delay)
+        message = await self.bot.get_channel(message.channel.id).fetch_message(message.id)
         if not message.reactions:
             await message.add_reaction(emoji=self.bot.get_emoji(self.nope_emoji))
 
