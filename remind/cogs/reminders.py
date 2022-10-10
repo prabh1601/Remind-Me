@@ -41,6 +41,7 @@ GuildSettings = recordtype(
         ('remind_channel_id', None), ('remind_role_id', None), ('remind_before', None),
         ('finalcall_channel_id', None), ('finalcall_before', None),
         ('localtimezone', pytz.timezone("UTC")),
+        ('auto_nope_react', False),
         ('website_patterns', defaultdict(WebsitePatterns))])
 
 
@@ -735,11 +736,27 @@ class Reminders(commands.Cog):
             await reaction_role.delete()
         self._serialize_guild_map()
 
+    #  Nope React Command Group
+    @commands.group(brief="Manage auto react", invoke_without_command=True)
+    @commands.has_role('Prabh')
+    async def nopereact(self, ctx):
+        await ctx.send_help(ctx.command)
+
+    @nopereact.command(brief='Enable auto nope react')
+    @commands.has_role('Prabh')
+    async def enable(self, ctx):
+        self.guild_map[ctx.guild.id].auto_nope_react = True
+
+    @nopereact.command(brief='Disable auto nope react')
+    @commands.has_role('Prabh')
+    async def disable(self, ctx):
+        self.guild_map[ctx.guild.id].auto_nope_react = False
+
     @commands.Cog.listener()
     async def on_message(self, message):
         settings = self.guild_map[message.guild.id]
-        if message.channel.id != settings.remind_channel_id or not message.embeds:
-            return
+        if not settings.auto_nope_react or message.channel.id != settings.remind_channel_id or not message.embeds:
+
 
         _, start_time = self.get_values_from_embed(message.embeds[0])
         delay = start_time - dt.datetime.utcnow().timestamp() + 300
