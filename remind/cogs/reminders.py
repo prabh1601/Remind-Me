@@ -130,7 +130,7 @@ async def _send_reminder_at(request):
     desc = f'About to start in {before_str} | {request.localtimezone}'
     embed = discord_common.color_embed(description=desc)
     for website, name, value in _get_embed_fields_from_contests(request.contests, request.localtimezone):
-        embed.add_field(name=(website + " || " + name), value=value)
+        embed.add_field(name=(website + " || " + name), value=value, inline=False)
     await request.channel.send(request.role.mention, embed=embed)
 
 
@@ -756,7 +756,7 @@ class Reminders(commands.Cog):
     async def on_message(self, message):
         settings = self.guild_map[message.guild.id]
         if not settings.auto_nope_react or message.channel.id != settings.remind_channel_id or not message.embeds:
-
+            return
 
         _, start_time = self.get_values_from_embed(message.embeds[0])
         delay = start_time - dt.datetime.utcnow().timestamp() + 300
