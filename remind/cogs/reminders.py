@@ -42,6 +42,7 @@ GuildSettings = recordtype(
         ('finalcall_channel_id', None), ('finalcall_before', None),
         ('localtimezone', pytz.timezone("UTC")),
         ('auto_nope_react', False),
+        ('add_first_reaction', False),
         ('website_patterns', defaultdict(WebsitePatterns))])
 
 
@@ -674,7 +675,8 @@ class Reminders(commands.Cog):
 
     async def do_validation_check(self, payload):
         settings = self.guild_map[payload.guild_id]
-        if settings.remind_channel_id is None or settings.remind_channel_id != payload.channel_id \
+        member = self.bot.get_guild(payload.guild_id).get_member(payload.user_id)
+        if member.bot or settings.remind_channel_id is None or settings.remind_channel_id != payload.channel_id \
                 or payload.emoji.name != self.reaction_emoji or settings.finalcall_channel_id is None:
             return None
 
@@ -728,7 +730,7 @@ class Reminders(commands.Cog):
         member_dm = await member.create_dm()
         await member_dm.send(f"Final Call Alarm Cleared for '{reaction_role.name}'")
 
-        if reaction_count == 0:
+        if reaction_count == 1:
             if link in self.finalcall_map[payload.guild_id]:
                 self.finaltasks[payload.guild_id][link].cancel()
                 del self.finalcall_map[payload.guild_id][link]
@@ -737,33 +739,58 @@ class Reminders(commands.Cog):
         self._serialize_guild_map()
 
     #  Nope React Command Group
-    @commands.group(brief="Manage auto react", invoke_without_command=True)
+    @commands.group(brief="Manage reactions in case of no reacts", invoke_without_command=True)
     @commands.has_role('Prabh')
-    async def nopereact(self, ctx):
+    async def lastreact(self, ctx):
         await ctx.send_help(ctx.command)
 
-    @nopereact.command(brief='Enable auto nope react')
+    @lastreact.command(name='enable',brief='Enable auto nope react')
     @commands.has_role('Prabh')
-    async def enable(self, ctx):
+    async def enable_lastreact(self, ctx):
         self.guild_map[ctx.guild.id].auto_nope_react = True
+        await ctx.send(embed=discord_common.embed_success('Enabled auto nope react'))
 
-    @nopereact.command(brief='Disable auto nope react')
+    @lastreact.command(name='disable', brief='Disable auto nope react')
     @commands.has_role('Prabh')
-    async def disable(self, ctx):
+    async def disable_lastreact(self, ctx):
         self.guild_map[ctx.guild.id].auto_nope_react = False
+        await ctx.send(embed=discord_common.embed_success('Disabled auto nope react'))
+
+    #  Self First React Command Group
+    @commands.group(brief="Manage reactions for self first react`", invoke_without_command=True)
+    @commands.has_any_role('Admin', constants.REMIND_MODERATOR_ROLE)
+    async def firstreact(self, ctx):
+        await ctx.send_help(ctx.command)
+
+    @firstreact.command(name='enable', brief='Enable self first react')
+    @commands.has_any_role('Admin', constants.REMIND_MODERATOR_ROLE)
+    async def enable_firstreact(self, ctx):
+        self.guild_map[ctx.guild.id].add_first_reaction = True
+        await ctx.send(embed=discord_common.embed_success('Enabled self first react'))
+
+    @firstreact.command(name='disable', brief='Disable self first react')
+    @commands.has_any_role('Admin', constants.REMIND_MODERATOR_ROLE)
+    async def disable_firstreact(self, ctx):
+        self.guild_map[ctx.guild.id].add_first_react = False
+        await ctx.send(embed=discord_common.embed_success('Disabled self first react'))
 
     @commands.Cog.listener()
     async def on_message(self, message):
         settings = self.guild_map[message.guild.id]
-        if not settings.auto_nope_react or message.channel.id != settings.remind_channel_id or not message.embeds:
+        if message.channel.id != settings.remind_channel_id or not message.embeds:
             return
 
-        _, start_time = self.get_values_from_embed(message.embeds[0])
-        delay = start_time - dt.datetime.utcnow().timestamp() + 300
-        await asyncio.sleep(delay)
-        message = await self.bot.get_channel(message.channel.id).fetch_message(message.id)
-        if not message.reactions:
-            await message.add_reaction(emoji=self.bot.get_emoji(self.nope_emoji))
+        remind_role = self.bot.get_guild(message.guild.id).get_role(settings.remind_role_id)
+        if settings.add_first_reaction and remind_role in message.role_mentions:
+            await message.add_reaction(emoji=self.reaction_emoji)
+
+        if settings.auto_nope_react:
+            _, start_time = self.get_values_from_embed(message.embeds[0])
+            delay = start_time - dt.datetime.utcnow().timestamp() + 300
+            await asyncio.sleep(delay)
+            message = await self.bot.get_channel(message.channel.id).fetch_message(message.id)
+            if not message.reactions:
+                await message.add_reaction(emoji=self.bot.get_emoji(self.nope_emoji))
 
     @commands.group(brief="Manage Final Call Reminder", invoke_without_command=True)
     async def final(self, ctx):
@@ -779,8 +806,6 @@ class Reminders(commands.Cog):
         self.guild_map[ctx.guild.id].finalcall_channel_id = ctx.channel.id
 
         finalcall_channel = ctx.guild.get_channel(self.guild_map[ctx.guild.id].finalcall_channel_id)
-
-        # await finalcall_channel.edit(name=f"starts-in-{before}-mins")
 
         embed = discord_common.embed_success('Final Call Settings Saved Successfully')
         embed.add_field(name='Final Call channel', value=finalcall_channel.mention)
