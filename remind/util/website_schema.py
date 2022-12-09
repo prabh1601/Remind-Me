@@ -57,7 +57,7 @@ schema['facebook.com/hackercup'] = WebsitePatterns(
     _allowed_patterns=[''],
     _disallowed_patterns=[],
     _shorthands=['hackercup', 'fbhc'],
-    _prefix='FB Hackercup'
+    _prefix='Meta Hackercup'
 )
 
 schema['leetcode.com'] = WebsitePatterns(
