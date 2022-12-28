@@ -861,7 +861,7 @@ class Reminders(commands.Cog):
 
         embed.add_field(name='Subscribed websites', value=f'{subscribed_websites_str}', inline=False)
 
-        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
+        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon)
         await ctx.send(embed=embed)
 
     @discord_common.send_error_if(RemindersCogError)
@@ -869,5 +869,5 @@ class Reminders(commands.Cog):
         pass
 
 
-def setup(bot):
-    bot.add_cog(Reminders(bot))
+async def setup(bot):
+    await bot.add_cog(Reminders(bot))

@@ -56,7 +56,7 @@ class Logging(commands.Cog, logging.Handler):
             self.task.cancel()
 
 
-def setup(bot):
+async def setup(bot):
     logging_cog_channel_id = os.environ.get('LOGGING_COG_CHANNEL_ID')
     if logging_cog_channel_id is None:
         logger.info('Skipping installation of logging cog as logging channel is not provided.')
@@ -69,4 +69,4 @@ def setup(bot):
         style='{',
         datefmt='%d-%m-%Y %H:%M:%S'))
     root_logger.addHandler(logging_cog)
-    bot.add_cog(logging_cog)
+    await bot.add_cog(logging_cog)
