@@ -50,7 +50,7 @@ def setup():
                                   TimedRotatingFileHandler(constants.LOG_FILE_PATH, when='D', backupCount=3, utc=True)])
 
 
-def main():
+async def main():
     load_dotenv()
 
     token = os.getenv('BOT_TOKEN_REMIND')
@@ -72,11 +72,12 @@ def main():
 
     intents = discord.Intents.default()
     intents.members = True
+    intents.message_content = True
     bot = commands.Bot(command_prefix=commands.when_mentioned_or('t;'), intents=intents)
 
     cogs = [file.stem for file in Path('remind', 'cogs').glob('*.py')]
     for extension in cogs:
-        bot.load_extension(f'remind.cogs.{extension}')
+        await bot.load_extension(f'remind.cogs.{extension}')
     logging.info(f'Cogs loaded: {", ".join(bot.cogs)}')
 
     async def no_dm_usage_check(ctx):
@@ -93,8 +94,8 @@ def main():
         asyncio.create_task(discord_common.presence(bot))
 
     bot.add_listener(discord_common.bot_error_handler, name='on_command_error')
-    bot.run(token)
+    await bot.start(token)
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
