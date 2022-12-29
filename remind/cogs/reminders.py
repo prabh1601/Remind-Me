@@ -782,7 +782,7 @@ class Reminders(commands.Cog):
 
         remind_role = self.bot.get_guild(message.guild.id).get_role(settings.remind_role_id)
         if settings.add_first_reaction and remind_role in message.role_mentions:
-            await message.add_reaction(emoji=self.reaction_emoji)
+            await message.add_reaction(self.reaction_emoji)
 
         if settings.auto_nope_react:
             _, start_time = self.get_values_from_embed(message.embeds[0])
@@ -790,7 +790,7 @@ class Reminders(commands.Cog):
             await asyncio.sleep(delay)
             message = await self.bot.get_channel(message.channel.id).fetch_message(message.id)
             if not message.reactions:
-                await message.add_reaction(emoji=self.bot.get_emoji(self.nope_emoji))
+                await message.add_reaction(self.bot.get_emoji(self.nope_emoji))
 
     @commands.group(brief="Manage Final Call Reminder", invoke_without_command=True)
     async def final(self, ctx):
