@@ -11,6 +11,7 @@ import copy
 
 from collections import defaultdict
 from recordtype import recordtype
+from datetime import datetime
 
 import discord
 from discord.ext import commands
@@ -305,7 +306,7 @@ class Reminders(commands.Cog):
         for data in pending_reschedule:
             embed_desc, embed_fields = data.embed_desc, data.embed_fields
             print(embed_desc)
-            embed = discord_common.color_embed(desc=embed_desc)
+            embed = discord_common.color_embed()
             embed.description = embed_desc
             for (name, value) in embed_fields:
                 embed.add_field(name=name, value=value)
@@ -705,6 +706,7 @@ class Reminders(commands.Cog):
         settings = self.guild_map[payload.guild_id]
         reaction_role = await self.get_finalcall_taskrole(payload.guild_id, embed)
         member = self.bot.get_guild(payload.guild_id).get_member(payload.user_id)
+        self.logger.info(f'{member} reacted for {reaction_role} which will be sent at {datetime.fromtimestamp(send_time)}')
         await member.add_roles(reaction_role)
         member_dm = await member.create_dm()
         self._serialize_guild_map()
@@ -726,6 +728,7 @@ class Reminders(commands.Cog):
             return
 
         member = self.bot.get_guild(payload.guild_id).get_member(payload.user_id)
+        self.logger.info(f'{member} unreacted for {reaction_role.name}')
         await member.remove_roles(reaction_role)
         member_dm = await member.create_dm()
         await member_dm.send(f"Final Call Alarm Cleared for '{reaction_role.name}'")
@@ -771,11 +774,13 @@ class Reminders(commands.Cog):
     @firstreact.command(name='disable', brief='Disable self first react')
     @commands.has_any_role('Admin', constants.REMIND_MODERATOR_ROLE)
     async def disable_firstreact(self, ctx):
-        self.guild_map[ctx.guild.id].add_first_react = False
+        self.guild_map[ctx.guild.id].add_first_reaction = False
         await ctx.send(embed=discord_common.embed_success('Disabled self first react'))
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        if message.guild is None:
+            return
         settings = self.guild_map[message.guild.id]
         if message.channel.id != settings.remind_channel_id or not message.embeds:
             return
