@@ -305,7 +305,6 @@ class Reminders(commands.Cog):
 
         for data in pending_reschedule:
             embed_desc, embed_fields = data.embed_desc, data.embed_fields
-            print(embed_desc)
             embed = discord_common.color_embed()
             embed.description = embed_desc
             for (name, value) in embed_fields:
@@ -690,6 +689,9 @@ class Reminders(commands.Cog):
 
         return reaction_count, message.embeds[0]
 
+    async def victim_card(self, member):
+        self.logger.error(f'Failed to send DM to {member}')
+
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         response = await self.do_validation_check(payload)
@@ -706,12 +708,16 @@ class Reminders(commands.Cog):
         settings = self.guild_map[payload.guild_id]
         reaction_role = await self.get_finalcall_taskrole(payload.guild_id, embed)
         member = self.bot.get_guild(payload.guild_id).get_member(payload.user_id)
-        self.logger.info(f'{member} reacted for {reaction_role} which will be sent at {datetime.fromtimestamp(send_time)}')
+        self.logger.info(
+            f'{member} reacted for {reaction_role} which will be sent at {datetime.fromtimestamp(send_time)}')
         await member.add_roles(reaction_role)
         member_dm = await member.create_dm()
         self._serialize_guild_map()
-        await member_dm.send(f"Final Call Alarm Set. You are alloted '{reaction_role.name}' which will be pinged"
-                             f" {settings.finalcall_before} mins before the contest")
+        try:
+            await member_dm.send(f"Final Call Alarm Set. You are alloted '{reaction_role.name}' which will be pinged"
+                                 f" {settings.finalcall_before} mins before the contest")
+        except:
+            await self.victim_card(member)
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
@@ -747,7 +753,7 @@ class Reminders(commands.Cog):
     async def lastreact(self, ctx):
         await ctx.send_help(ctx.command)
 
-    @lastreact.command(name='enable',brief='Enable auto nope react')
+    @lastreact.command(name='enable', brief='Enable auto nope react')
     @commands.has_role('Prabh')
     async def enable_lastreact(self, ctx):
         self.guild_map[ctx.guild.id].auto_nope_react = True
