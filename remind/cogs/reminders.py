@@ -737,7 +737,10 @@ class Reminders(commands.Cog):
         self.logger.info(f'{member} unreacted for {reaction_role.name}')
         await member.remove_roles(reaction_role)
         member_dm = await member.create_dm()
-        await member_dm.send(f"Final Call Alarm Cleared for '{reaction_role.name}'")
+        try:
+            await member_dm.send(f"Final Call Alarm Cleared for '{reaction_role.name}'")
+        except:
+            await self.victim_card(member)
 
         if reaction_count == 1:
             if link in self.finalcall_map[payload.guild_id]:
