@@ -93,11 +93,12 @@ def _get_formatted_contest_desc(start, duration, url, max_duration_len):
 
 
 def _get_contest_website_prefix(contest):
-    for website, data in website_schema.schema.items():
-        if website == contest.website:
-            return data.prefix
+    website_details = website_schema.schema[contest.website]
+    return website_details.prefix if website_details.show_prefix else None
 
-    assert False
+
+def _get_display_name(website, name):
+    return (website + " || " + name) if website is not None else name
 
 
 def _get_embed_fields_from_contests(contests, localtimezone):
@@ -132,7 +133,7 @@ async def _send_reminder_at(request):
     desc = f'About to start in {before_str} | {request.localtimezone}'
     embed = discord_common.color_embed(description=desc)
     for website, name, value in _get_embed_fields_from_contests(request.contests, request.localtimezone):
-        embed.add_field(name=(website + " || " + name), value=value, inline=False)
+        embed.add_field(name=_get_display_name(website, name), value=value, inline=False)
     await request.channel.send(request.role.mention, embed=embed)
 
 
@@ -330,7 +331,7 @@ class Reminders(commands.Cog):
             embed = discord_common.color_embed()
             embed.description = f"TimeZone : {localtimezone}"
             for website, name, value in _get_embed_fields_from_contests(chunk, localtimezone):
-                embed.add_field(name=(website + " || " + name), value=value, inline=False)
+                embed.add_field(name=_get_display_name(website, name), value=value, inline=False)
             pages.append((title, embed))
         return pages
 
