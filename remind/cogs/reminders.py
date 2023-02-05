@@ -309,7 +309,7 @@ class Reminders(commands.Cog):
             embed = discord_common.color_embed()
             embed.description = embed_desc
             for (name, value) in embed_fields:
-                embed.add_field(name=name, value=value)
+                embed.add_field(name=name, value=value, inline=False)
             link, start_time = self.get_values_from_embed(embed)
             send_time = start_time - self.guild_map[guild_id].finalcall_before * 60
             reaction_role = self.bot.get_guild(guild_id).get_role(data.role_id)
