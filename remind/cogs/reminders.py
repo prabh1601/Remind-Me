@@ -86,9 +86,8 @@ def _contest_duration_format(contest):
 
 def _get_formatted_contest_desc(start, duration, url, max_duration_len):
     em = '\N{EN SPACE}'
-    sq = '\N{WHITE SQUARE WITH UPPER RIGHT QUADRANT}'
     desc = (f'`{em}{start}{em}|{em}{duration.rjust(max_duration_len, em)}{em}|'
-            f'{em}`[`link {sq}`]({url} "Link to contest page")')
+            f'{em}`[`link`]({url} "Link to contest page")')
     return desc
 
 
@@ -406,84 +405,6 @@ class Reminders(commands.Cog):
         """
         self.guild_map[ctx.guild.id].website_patterns = copy.deepcopy(website_schema.schema)
         await ctx.send(embed=discord_common.embed_success('Succesfully reset the subscriptions to the default ones'))
-
-    # @remind.command(brief='Show reminder settings')
-    # async def settings(self, ctx):
-    #     """Shows the current settings for the guild"""
-    #     settings = self.guild_map[ctx.guild.id]
-    #
-    #     remind_channel = ctx.guild.get_channel(settings.remind_channel_id)
-    #     remind_role = ctx.guild.get_role(settings.remind_role_id)
-    #
-    #     finalcall_channel = ctx.guild.get_channel(settings.finalcall_channel_id)
-    #
-    #     subscribed_websites_str = ", ".join(
-    #         website for website, patterns in settings.website_allowed_patterns.items() if patterns)
-    #
-    #     remind_before_str = "Not Set"
-    #     final_before_str = "Not Set"
-    #     if settings.remind_before is not None:
-    #         remind_before_str = f"At {', '.join(str(before_mins) for before_mins in settings.remind_before)}" \
-    #                             f" mins before contest"
-    #     if settings.finalcall_before is not None:
-    #         final_before_str = f"At {settings.finalcall_before} mins before contest"
-    #     embed = discord_common.embed_success('Current reminder settings')
-    #
-    #     if remind_channel is not None:
-    #         embed.add_field(name='Remind Channel', value=remind_channel.mention)
-    #     else:
-    #         embed.add_field(name='Remind Channel', value="Not Set")
-    #
-    #     if remind_role is not None:
-    #         embed.add_field(name='Remind Role', value=remind_role.mention)
-    #     else:
-    #         embed.add_field(name='Remind Role', value="Not Set")
-    #
-    #     embed.add_field(name='Remind Before', value=remind_before_str)
-    #
-    #     if finalcall_channel is not None:
-    #         embed.add_field(name='Final Call Channel', value=finalcall_channel.mention)
-    #     else:
-    #         embed.add_field(name='Final Call Channel', value="Not Set")
-    #
-    #     embed.add_field(name='Final Call Before', value=final_before_str)
-    #
-    #     embed.add_field(name='Subscribed websites', value=f'{subscribed_websites_str}')
-    #     await ctx.send(embed=embed)
-
-    # @remind.command(brief='Subscribe to contest reminders')
-    # async def on(self, ctx):
-    #     """Subscribes you to contest reminders.
-    #     Use 't;remind settings' to see the current settings.
-    #     """
-    #     role = self._get_remind_role(ctx.guild)
-    #     if role in ctx.author.roles:
-    #         embed = discord_common.embed_neutral('You are already subscribed to contest reminders')
-    #     else:
-    #         await ctx.author.add_roles(role, reason='User subscribed to contest reminders')
-    #         embed = discord_common.embed_success('Successfully subscribed to contest reminders')
-    #     await ctx.send(embed=embed)
-    #
-    # @remind.command(brief='Unsubscribe from contest reminders')
-    # async def off(self, ctx):
-    #     """Unsubscribes you from contest reminders."""
-    #     role = self._get_remind_role(ctx.guild)
-    #     if role not in ctx.author.roles:
-    #         embed = discord_common.embed_neutral('You are not subscribed to contest reminders')
-    #     else:
-    #         await ctx.author.remove_roles(role, reason='User unsubscribed from contest reminders')
-    #         embed = discord_common.embed_success('Successfully unsubscribed from contest reminders')
-    #     await ctx.send(embed=embed)
-
-    # def _get_remind_role(self, guild):
-    #     settings = self.guild_map[guild.id]
-    #     role_id = settings.remind_role_id
-    #     if role_id is None:
-    #         raise RemindersCogError('No role set for reminders')
-    #     role = guild.get_role(role_id)
-    #     if role is None:
-    #         raise RemindersCogError('The role set for reminders is no longer available.')
-    #     return role
 
     def _set_guild_setting(self, guild_id, websites, unsubscribe):
 

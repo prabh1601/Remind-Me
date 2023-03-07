@@ -10,7 +10,7 @@ from discord.ext import commands
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
-URL_BASE = 'https://clist.by/api/v1/contest/'
+URL_BASE = 'https://clist.by/api/v2/contest'
 _CLIST_API_TIME_DIFFERENCE = 30 * 60  # seconds
 
 
@@ -29,13 +29,21 @@ class ClientError(ClistApiError):
 
 
 def _query_api():
-    clist_token = os.getenv('CLIST_API_TOKEN')
+    clist_username = os.getenv('CLIST_API_USERNAME')
+    clist_api_key = os.getenv('CLIST_API_KEY')
     contests_start_time = dt.datetime.utcnow() - dt.timedelta(days=2)
-    contests_start_time_string = contests_start_time.strftime("%Y-%m-%dT%H%%3A%M%%3A%S")
-    url = URL_BASE + '?limit=200&start__gte=' + contests_start_time_string + '&' + clist_token
+    contests_start_time_string = contests_start_time.strftime("%Y-%m-%dT%H:%M:%S")
+
+    param = {
+        "order_by": "start",
+        "limit": "500",
+        "start__gte": contests_start_time_string,
+        "username": clist_username,
+        "api_key": clist_api_key
+    }
 
     try:
-        resp = requests.get(url)
+        resp = requests.get(URL_BASE, params=param)
         if resp.status_code != 200:
             raise ClistApiError
         return resp.json()['objects']

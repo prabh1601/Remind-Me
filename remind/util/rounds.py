@@ -9,8 +9,7 @@ class Round:
         self.start_time = dt.datetime.strptime(contest['start'], '%Y-%m-%dT%H:%M:%S')
         self.duration = dt.timedelta(seconds=contest['duration'])
         self.url = contest['href']
-        self.website = contest['resource']['name']
-        self.website_id = contest['resource']['id']
+        self.website = contest['resource']
 
     def __str__(self):
         st = "ID = " + str(self.id) + ", "
@@ -19,7 +18,6 @@ class Round:
         st += "Duration = " + str(self.duration) + ", "
         st += "URL = " + self.url + ", "
         st += "Website = " + self.website + ", "
-        st += "Website_id = " + str(self.website_id) + ", "
         st = "(" + st[:-2] + ")"
         return st
 

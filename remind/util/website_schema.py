@@ -29,7 +29,7 @@ schema['codeforces.com'] = WebsitePatterns(
 )
 
 schema['codechef.com'] = WebsitePatterns(
-    _allowed_patterns=['lunch', 'cook', 'rated'],
+    _allowed_patterns=['lunch', 'cook', 'starters', 'rated'],
     _disallowed_patterns=['unrated', 'long'],
     _shorthands=['cc', 'codechef'],
     _prefix='CodeChef',
