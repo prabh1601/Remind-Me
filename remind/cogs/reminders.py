@@ -93,7 +93,7 @@ def _get_formatted_contest_desc(start, duration, url, max_duration_len):
 
 def _get_contest_website_prefix(contest):
     website_details = website_schema.schema[contest.website]
-    return website_details.prefix if website_details.show_prefix else None
+    return website_details.prefix if website_details.prefix.lower() not in contest.name.lower() else None
 
 
 def _get_display_name(website, name):
