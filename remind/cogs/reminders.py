@@ -87,7 +87,7 @@ def _contest_duration_format(contest):
 def _get_formatted_contest_desc(start, duration, url, max_duration_len):
     em = '\N{EN SPACE}'
     desc = (f'`{em}{start}{em}|{em}{duration.rjust(max_duration_len, em)}{em}|'
-            f'{em}`[`link`]({url} "Link to contest page")')
+            f'{em}`[`link`]({url} "{url}")')
     return desc
 
 
