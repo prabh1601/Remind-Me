@@ -51,7 +51,7 @@ class RemindRequest:
     def __init__(self, channel, role, contests, before_secs, send_time, localtimezone):
         self.channel = channel
         self.role = role
-        self.contests = contests
+        self.contests = sorted(contests, key= lambda c : c.name)
         self.before_secs = before_secs
         self.send_time = send_time
         self.localtimezone = localtimezone
@@ -106,6 +106,7 @@ def _get_embed_fields_from_contests(contests, localtimezone):
               _get_contest_website_prefix(contest),
               _contest_duration_format(contest),
               contest.url) for contest in contests]
+
     max_duration_len = max(len(duration) for _, _, _, duration, _ in infos)
 
     fields = []
