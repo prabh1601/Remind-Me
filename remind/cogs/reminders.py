@@ -51,7 +51,7 @@ class RemindRequest:
     def __init__(self, channel, role, contests, before_secs, send_time, localtimezone):
         self.channel = channel
         self.role = role
-        self.contests = sorted(contests, key= lambda c : c.name)
+        self.contests = sorted(contests, key=lambda c: c.name)
         self.before_secs = before_secs
         self.send_time = send_time
         self.localtimezone = localtimezone
@@ -86,8 +86,7 @@ def _contest_duration_format(contest):
 
 def _get_formatted_contest_desc(start, duration, url, max_duration_len):
     em = '\N{EN SPACE}'
-    desc = (f'`{em}{start}{em}|{em}{duration.rjust(max_duration_len, em)}{em}|'
-            f'{em}`[`link`]({url} "{url}")')
+    desc = f'`{em}{start}{em}|{em}{duration.rjust(max_duration_len, em)}{em}|{em}`[`link`]({url}")'
     return desc
 
 
@@ -600,7 +599,7 @@ class Reminders(commands.Cog):
         settings = self.guild_map[payload.guild_id]
         member = self.bot.get_guild(payload.guild_id).get_member(payload.user_id)
         if member.bot or settings.remind_channel_id is None or settings.remind_channel_id != payload.channel_id \
-                or payload.emoji.name != self.reaction_emoji or settings.finalcall_channel_id is None:
+            or payload.emoji.name != self.reaction_emoji or settings.finalcall_channel_id is None:
             return None
 
         channel = self.bot.get_channel(payload.channel_id)
