@@ -5,11 +5,11 @@ from remind.util import website_schema
 class Round:
     def __init__(self, contest):
         self.id = contest['id']
-        self.name = contest['event']
         self.start_time = dt.datetime.strptime(contest['start'], '%Y-%m-%dT%H:%M:%S')
         self.duration = dt.timedelta(seconds=contest['duration'])
         self.url = contest['href']
         self.website = contest['resource']
+        self.name = website_schema.schema[self.website].normalize(contest['event'])
 
     def __str__(self):
         st = "ID = " + str(self.id) + ", "

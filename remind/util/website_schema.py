@@ -1,21 +1,23 @@
 from collections import defaultdict
+import re
 
 
 class WebsitePatterns:
-    def __init__(self, *, _allowed_patterns=None, _disallowed_patterns=None, _shorthands=None, _prefix=""):
-        if _shorthands is None:
-            _shorthands = []
-        if _disallowed_patterns is None:
-            _disallowed_patterns = []
-        if _allowed_patterns is None:
-            _allowed_patterns = []
+    def __init__(self, *,
+                 _allowed_patterns=None,
+                 _disallowed_patterns=None,
+                 _shorthands=None,
+                 _prefix="",
+                 _normalize_regex=".*"):
 
-        self.allowed_patterns = _allowed_patterns
-        self.disallowed_patterns = _disallowed_patterns
-        self.shorthands = _shorthands
+        self.allowed_patterns = _allowed_patterns or []
+        self.disallowed_patterns = _disallowed_patterns or []
+        self.shorthands = _shorthands or []
         self.prefix = _prefix
+        self.normalize = lambda name: re.compile(_normalize_regex).search(name).group()
 
 
+# Todo : Move this to external db
 schema = defaultdict(WebsitePatterns)
 
 schema['codeforces.com'] = WebsitePatterns(
@@ -37,6 +39,7 @@ schema['atcoder.jp'] = WebsitePatterns(
     _disallowed_patterns=[],
     _shorthands=['ac', 'atcoder'],
     _prefix='AtCoder',
+    _normalize_regex="AtCoder .* Contest [0-9]+"
 )
 
 schema['codingcompetitions.withgoogle.com'] = WebsitePatterns(
