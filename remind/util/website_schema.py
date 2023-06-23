@@ -14,7 +14,14 @@ class WebsitePatterns:
         self.disallowed_patterns = _disallowed_patterns or []
         self.shorthands = _shorthands or []
         self.prefix = _prefix
-        self.normalize = lambda name: re.compile(_normalize_regex).search(name).group()
+        self._normalize_regex = _normalize_regex
+
+    def normalize(self, name):
+        try:
+            name = re.compile(self._normalize_regex).search(name).group()
+        except AttributeError:
+            pass
+        return name
 
 
 # Todo : Move this to external db
