@@ -278,12 +278,18 @@ class Reminders(commands.Cog):
             contests = self.get_guild_contests(contests, guild_id)
             if not contests:
                 continue
-            for before_mins in settings.remind_before:
-                before_secs = 60 * before_mins
-                request = RemindRequest(channel, role, contests, before_secs, start_time - before_secs,
-                                        settings.localtimezone)
-                task = asyncio.create_task(_send_reminder_at(request))
-                self.task_map[guild_id].append(task)
+
+            website_seggregated_contests = defaultdict(list)
+            for contest in contests:
+                website_seggregated_contests[contest.url].append(contest)
+
+            for _, seg_contests in website_seggregated_contests.items():
+                for before_mins in settings.remind_before:
+                    before_secs = 60 * before_mins
+                    request = RemindRequest(channel, role, seg_contests, before_secs, start_time - before_secs,
+                                            settings.localtimezone)
+                    task = asyncio.create_task(_send_reminder_at(request))
+                    self.task_map[guild_id].append(task)
 
         self.logger.info(
             f'{len(self.task_map[guild_id])} reminder tasks scheduled for guild "{self.bot.get_guild(guild_id)}"')
@@ -636,7 +642,7 @@ class Reminders(commands.Cog):
         member_dm = await member.create_dm()
         self._serialize_guild_map()
         try:
-            await member_dm.send(f"Final Call Alarm Set. You are alloted '{reaction_role.name}' which will be pinged"
+            await member_dm.send(f"Final Call Alarm Set. You are alloted `{reaction_role.name}` which will be pinged"
                                  f" {settings.finalcall_before} mins before the contest")
         except:
             await self.victim_card(member)
