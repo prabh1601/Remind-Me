@@ -72,8 +72,8 @@ def get_default_guild_settings():
 
 
 def _contest_start_time_format(contest, tz):
-    start = contest.start_time.replace(tzinfo=dt.timezone.utc).astimezone(tz)
-    return f'{start.strftime("%a, %d %b %y, %H:%M")}'
+    seconds = int(contest.start_time.replace(tzinfo=dt.timezone.utc).timestamp())
+    return f'<t:{seconds}:F>'
 
 
 def _contest_duration_format(contest):
@@ -84,10 +84,9 @@ def _contest_duration_format(contest):
     return duration
 
 
-def _get_formatted_contest_desc(start, duration, url, max_duration_len):
+def _get_formatted_contest_desc(start, duration, url):
     em = '\N{EN SPACE}'
-    desc = f'`{em}{start}{em}|{em}{duration.rjust(max_duration_len, em)}{em}|{em}`[`link`]({url})'
-    return desc
+    return f'{start}\n{duration}{em}|{em}[link]({url})'
 
 
 def _get_contest_website_prefix(contest):
@@ -100,18 +99,13 @@ def _get_display_name(website, name):
 
 
 def _get_embed_fields_from_contests(contests, localtimezone):
-    infos = [(contest.name,
-              _contest_start_time_format(contest, localtimezone),
-              _get_contest_website_prefix(contest),
-              _contest_duration_format(contest),
-              contest.url) for contest in contests]
-
-    max_duration_len = max(len(duration) for _, _, _, duration, _ in infos)
-
     fields = []
-    for name, start, website, duration, url in infos:
-        value = _get_formatted_contest_desc(start, duration, url, max_duration_len)
-        fields.append((website, name, value))
+    for contest in contests:
+        start = _contest_start_time_format(contest, localtimezone)
+        duration = _contest_duration_format(contest)
+        value = _get_formatted_contest_desc(start, duration, contest.url)
+        website = _get_contest_website_prefix(contest)
+        fields.append((website, contest.name, value))
     return fields
 
 
@@ -129,7 +123,7 @@ async def _send_reminder_at(request):
 
     labels = 'day hr min sec'.split()
     before_str = ' '.join(make(value, label) for label, value in zip(labels, values) if value > 0)
-    desc = f'About to start in {before_str} | {request.localtimezone}'
+    desc = f'About to start in {before_str}!'
     embed = discord_common.color_embed(description=desc)
     for website, name, value in _get_embed_fields_from_contests(request.contests, request.localtimezone):
         embed.add_field(name=_get_display_name(website, name), value=value, inline=False)
@@ -542,7 +536,7 @@ class Reminders(commands.Cog):
             labels = 'day hr min sec'.split()
             values = discord_common.time_format(settings.finalcall_before * 60)
             before_str = ' '.join(make(value, label) for label, value in zip(labels, values) if value > 0)
-            desc = f'About to start in {before_str} | {settings.localtimezone}'
+            desc = f'About to start in {before_str}!'
             embed.description = desc
             channel = self.bot.get_channel(settings.finalcall_channel_id)
             msg = await channel.send(role.mention + " " + send_msg, embed=embed)
