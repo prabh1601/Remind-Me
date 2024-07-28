@@ -6,7 +6,7 @@ import logging
 import time
 import datetime as dt
 from pathlib import Path
-import pytz
+import re
 import copy
 
 from collections import defaultdict
@@ -35,26 +35,22 @@ _FINISHED_CONTESTS_LIMIT = 5
 _CONTEST_REFRESH_PERIOD = 10 * 60  # seconds
 _GUILD_SETTINGS_BACKUP_PERIOD = 6 * 60 * 60  # seconds
 
-_PYTZ_TIMEZONES_GIST_URL = "https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568"
-
 GuildSettings = recordtype(
     'GuildSettings', [
         ('remind_channel_id', None), ('remind_role_id', None), ('remind_before', None),
         ('finalcall_channel_id', None), ('finalcall_before', None),
-        ('localtimezone', pytz.timezone("UTC")),
         ('auto_nope_react', False),
         ('add_first_reaction', False),
         ('website_patterns', defaultdict(WebsitePatterns))])
 
 
 class RemindRequest:
-    def __init__(self, channel, role, contests, before_secs, send_time, localtimezone):
+    def __init__(self, channel, role, contests, before_secs, send_time):
         self.channel = channel
         self.role = role
         self.contests = sorted(contests, key=lambda c: c.name)
         self.before_secs = before_secs
         self.send_time = send_time
-        self.localtimezone = localtimezone
 
 
 class FinalCallRequest:
@@ -71,7 +67,7 @@ def get_default_guild_settings():
     return settings
 
 
-def _contest_start_time_format(contest, tz):
+def _contest_start_time_format(contest):
     seconds = int(contest.start_time.replace(tzinfo=dt.timezone.utc).timestamp())
     return f'<t:{seconds}:F>'
 
@@ -98,10 +94,10 @@ def _get_display_name(website, name):
     return (website + " || " + name) if website is not None else name
 
 
-def _get_embed_fields_from_contests(contests, localtimezone):
+def _get_embed_fields_from_contests(contests):
     fields = []
     for contest in contests:
-        start = _contest_start_time_format(contest, localtimezone)
+        start = _contest_start_time_format(contest)
         duration = _contest_duration_format(contest)
         value = _get_formatted_contest_desc(start, duration, contest.url)
         website = _get_contest_website_prefix(contest)
@@ -125,7 +121,7 @@ async def _send_reminder_at(request):
     before_str = ' '.join(make(value, label) for label, value in zip(labels, values) if value > 0)
     desc = f'About to start in {before_str}!'
     embed = discord_common.color_embed(description=desc)
-    for website, name, value in _get_embed_fields_from_contests(request.contests, request.localtimezone):
+    for website, name, value in _get_embed_fields_from_contests(request.contests):
         embed.add_field(name=_get_display_name(website, name), value=value, inline=False)
     await request.channel.send(request.role.mention, embed=embed)
 
@@ -280,8 +276,7 @@ class Reminders(commands.Cog):
             for _, seg_contests in website_seggregated_contests.items():
                 for before_mins in settings.remind_before:
                     before_secs = 60 * before_mins
-                    request = RemindRequest(channel, role, seg_contests, before_secs, start_time - before_secs,
-                                            settings.localtimezone)
+                    request = RemindRequest(channel, role, seg_contests, before_secs, start_time - before_secs)
                     task = asyncio.create_task(_send_reminder_at(request))
                     self.task_map[guild_id].append(task)
 
@@ -323,13 +318,12 @@ class Reminders(commands.Cog):
             f'{len(self.finalcall_map[guild_id])} final calls scheduled for guild "{self.bot.get_guild(guild_id)}"')
 
     @staticmethod
-    def _make_contest_pages(contests, title, localtimezone):
+    def _make_contest_pages(contests, title):
         pages = []
         chunks = paginator.chunkify(contests, _CONTESTS_PER_PAGE)
         for chunk in chunks:
             embed = discord_common.color_embed()
-            embed.description = f"TimeZone : {localtimezone}"
-            for website, name, value in _get_embed_fields_from_contests(chunk, localtimezone):
+            for website, name, value in _get_embed_fields_from_contests(chunk):
                 embed.add_field(name=_get_display_name(website, name), value=value, inline=False)
             pages.append((title, embed))
         return pages
@@ -340,7 +334,7 @@ class Reminders(commands.Cog):
         if len(contests) == 0:
             await ctx.send(embed=discord_common.embed_neutral(empty_msg))
             return
-        pages = self._make_contest_pages(contests, title, self.guild_map[ctx.guild.id].localtimezone)
+        pages = self._make_contest_pages(contests, title)
         paginator.paginate(self.bot, ctx.channel, pages, wait_time=_CONTEST_PAGINATE_WAIT_TIME,
                            set_pagenum_footers=True)
 
@@ -472,22 +466,6 @@ class Reminders(commands.Cog):
         del self.guild_map[ctx.guild.id]
         await ctx.send(embed=discord_common.embed_success('Reminder settings cleared'))
 
-    @commands.command(brief='Set the server\'s timezone', usage=' <timezone>')
-    @commands.has_any_role('Admin', constants.REMIND_MODERATOR_ROLE)
-    async def settz(self, ctx, timezone: str = None):
-        """ Sets the server's timezone to the given timezone. """
-
-        if not (timezone in pytz.all_timezones):
-            desc = ('The given timezone is absent/invalid\n\n'
-                    'Examples of valid timezones:\n\n')
-            desc += '\n'.join(random.sample(pytz.all_timezones, 5))
-            desc += '\n\nAll valid timezones can be found [here]'
-            desc += f'({_PYTZ_TIMEZONES_GIST_URL})'
-            raise RemindersCogError(desc)
-
-        self.guild_map[ctx.guild.id].localtimezone = pytz.timezone(timezone)
-        await ctx.send(embed=discord_common.embed_success(f'Succesfully set the server timezone to {timezone}'))
-
     @commands.group(brief='Commands for listing contests', invoke_without_command=True)
     async def clist(self, ctx):
         """
@@ -560,16 +538,9 @@ class Reminders(commands.Cog):
 
     @staticmethod
     def get_values_from_embed(embed):
-        values = embed.fields[0].value.split("\u2002")
-        link_field = values[5].strip()
-        link = link_field[link_field.find("(") + 1: link_field.find('"')].strip()
-
-        timezone = pytz.timezone(embed.description.split("| ")[1])
-        time_stamp = values[1].strip()
-        start_time = dt.datetime.strptime(time_stamp, "%a, %d %b %y, %H:%M")
-        start_time = timezone.localize(start_time).astimezone(dt.timezone.utc)
-        start_time = time.mktime(start_time.timetuple())  # in sec now
-
+        desc = embed.fields[0].value
+        link = re.findall(r']\((http.+)\)', desc)[0]
+        start_time = int(re.findall(r'<t:(\d+):[A-za-z]>', desc)[0])
         return link, start_time
 
     async def create_finalcall_role(self, guild_id, embed):
