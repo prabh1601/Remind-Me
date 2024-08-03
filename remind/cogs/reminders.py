@@ -82,7 +82,7 @@ def _contest_duration_format(contest):
 
 def _get_formatted_contest_desc(start, duration, url):
     em = '\N{EN SPACE}'
-    return f'{start}\n{duration}{em}|{em}[link]({url})'
+    return f'{start}\nDuration:{em}{duration}{em}|{em}[link]({url})'
 
 
 def _get_contest_website_prefix(contest):
