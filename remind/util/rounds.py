@@ -24,6 +24,10 @@ class Round:
     def is_eligible(self, site):
         return site == self.website
 
+    def is_rare(self):
+        schema = website_schema.schema[self.website]
+        return schema.rare
+
     def is_desired(self, websites):
 
         for disallowed_pattern in websites[self.website].disallowed_patterns:

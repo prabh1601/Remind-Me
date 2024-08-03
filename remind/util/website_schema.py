@@ -8,13 +8,15 @@ class WebsitePatterns:
                  _disallowed_patterns=None,
                  _shorthands=None,
                  _prefix="",
-                 _normalize_regex=".*"):
+                 _normalize_regex=".*",
+                 _rare=False):
 
         self.allowed_patterns = _allowed_patterns or []
         self.disallowed_patterns = _disallowed_patterns or []
         self.shorthands = _shorthands or []
         self.prefix = _prefix
         self._normalize_regex = _normalize_regex
+        self.rare = _rare
 
     def normalize(self, name):
         try:
@@ -53,21 +55,24 @@ schema['codingcompetitions.withgoogle.com'] = WebsitePatterns(
     _allowed_patterns=[''],
     _disallowed_patterns=['registration', 'coding practice'],
     _shorthands=['google'],
-    _prefix='Google'
+    _prefix='Google',
+    _rare=True
 )
 
 schema['usaco.org'] = WebsitePatterns(
     _allowed_patterns=[''],
     _disallowed_patterns=[],
     _shorthands=['usaco'],
-    _prefix='USACO'
+    _prefix='USACO',
+    _rare=True
 )
 
 schema['facebook.com/hackercup'] = WebsitePatterns(
     _allowed_patterns=[''],
     _disallowed_patterns=[],
     _shorthands=['hackercup', 'fbhc'],
-    _prefix='Meta Hackercup'
+    _prefix='Meta Hackercup',
+    _rare=True
 )
 
 schema['leetcode.com'] = WebsitePatterns(

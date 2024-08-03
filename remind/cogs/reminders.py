@@ -45,10 +45,10 @@ GuildSettings = recordtype(
 
 
 class RemindRequest:
-    def __init__(self, channel, role, contests, before_secs, send_time):
+    def __init__(self, channel, role, contest: Round, before_secs, send_time):
         self.channel = channel
         self.role = role
-        self.contests = sorted(contests, key=lambda c: c.name)
+        self.contest = contest
         self.before_secs = before_secs
         self.send_time = send_time
 
@@ -87,11 +87,11 @@ def _get_formatted_contest_desc(start, duration, url):
 
 def _get_contest_website_prefix(contest):
     website_details = website_schema.schema[contest.website]
-    return website_details.prefix if website_details.prefix.lower() not in contest.name.lower() else None
+    return website_details.prefix
 
 
 def _get_display_name(website, name):
-    return (website + " || " + name) if website is not None else name
+    return (website + " || " + name) if website.lower() not in name.lower() else name
 
 
 def _get_embed_fields_from_contests(contests):
@@ -121,9 +121,11 @@ async def _send_reminder_at(request):
     before_str = ' '.join(make(value, label) for label, value in zip(labels, values) if value > 0)
     desc = f'About to start in {before_str}!'
     embed = discord_common.color_embed(description=desc)
+    if request.contest.is_rare():
+        embed.set_footer(text=f"Its once in a while contest, you wouldn't wanna miss 👀")
     for website, name, value in _get_embed_fields_from_contests(request.contests):
         embed.add_field(name=_get_display_name(website, name), value=value, inline=False)
-    await request.channel.send(request.role.mention, embed=embed)
+    await request.channel.send(request.role.mention + f' Its {website} time!', embed=embed)
 
 
 def filter_contests(filters, contests):
@@ -269,14 +271,14 @@ class Reminders(commands.Cog):
             if not contests:
                 continue
 
-            website_seggregated_contests = defaultdict(list)
+            website_seggregated_contests = dict()
             for contest in contests:
-                website_seggregated_contests[contest.url].append(contest)
+                website_seggregated_contests[contest.url] = contest  # an url can uniquely identify a contest
 
-            for _, seg_contests in website_seggregated_contests.items():
+            for _, seg_contest in website_seggregated_contests.items():
                 for before_mins in settings.remind_before:
                     before_secs = 60 * before_mins
-                    request = RemindRequest(channel, role, seg_contests, before_secs, start_time - before_secs)
+                    request = RemindRequest(channel, role, seg_contest, before_secs, start_time - before_secs)
                     task = asyncio.create_task(_send_reminder_at(request))
                     self.task_map[guild_id].append(task)
 
