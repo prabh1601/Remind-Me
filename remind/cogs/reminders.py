@@ -123,7 +123,7 @@ async def _send_reminder_at(request):
     embed = discord_common.color_embed(description=desc)
     if request.contest.is_rare():
         embed.set_footer(text=f"Its once in a while contest, you wouldn't wanna miss 👀")
-    for website, name, value in _get_embed_fields_from_contests(request.contests):
+    for website, name, value in _get_embed_fields_from_contests([request.contest]):
         embed.add_field(name=_get_display_name(website, name), value=value, inline=False)
     await request.channel.send(request.role.mention + f' Its {website} time!', embed=embed)
 
