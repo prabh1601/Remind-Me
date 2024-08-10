@@ -505,7 +505,7 @@ class Reminders(commands.Cog):
         settings = self.guild_map[guild_id]
 
         # sleep till the ping time
-        delay = send_time - dt.datetime.utcnow().timestamp()
+        delay = send_time - dt.datetime.now().timestamp()
         if delay >= 0:
             await asyncio.sleep(delay)
 
@@ -546,8 +546,8 @@ class Reminders(commands.Cog):
         return link, start_time
 
     async def create_finalcall_role(self, guild_id, embed):
-        website = embed.fields[0].name.split(" || ")[0]
-        name = f"Final Call - {website}"
+        contest_name = embed.fields[0].name
+        name = f"Final Call - {contest_name}"
         role = await self.bot.get_guild(guild_id).create_role(name=name)
         return role
 
